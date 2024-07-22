@@ -65,7 +65,7 @@ def read_input(file_path):
             print(f"Unexpected linha format: {linhas[index].strip()}")  # Debug
             break
 
-        return csp
+    return csp
 
 def is_consistent(csp, assignment, var, value):
     assignment[var] = value
