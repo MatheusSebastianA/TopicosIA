@@ -54,6 +54,10 @@ def read_input(file_path):
 
             lista_de_tuplas = []
             linha.pop(0)
+
+            for i in range(num_tuplas*escopo_tam):
+                linha[i] = int(linha[i])
+                
             for i in range(num_tuplas):
                 lista_de_tuplas.append(tuple(linha[escopo_tam*(i):(escopo_tam*i)+escopo_tam]))
                 
