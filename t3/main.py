@@ -20,37 +20,30 @@ def read_input(file_path):
 
     index = 0
     num_var = int(linhas[index].strip())
-    print(f"Num de variaveis: {num_var}")  # Debug
     index += 1
 
     for i in range(num_var):
         linha = linhas[index].strip().split()
         dom_tam = int(linha[0])
         dom_valores = list(map(int, linha[1:1 + dom_tam]))
-        print(f"Variavel x{i+1} dominio: {dom_valores}")  # Debug
         csp.add_variable(f'x{i+1}', dom_valores)
         index += 1
 
     num_restricoes = int(linhas[index].strip())
-    print(f"Num de restricoes: {num_restricoes}")  # Debug
     index += 1
 
     while index < len(linhas):
         if linhas[index].strip() in {'V', 'I'}:
             tipo_restricao = linhas[index].strip()
-            print(f"Tipo de restricao: {tipo_restricao}")  # Debug
             index += 1
 
             linha = linhas[index].strip().split()
             escopo_tam = int(linha[0])
             escopo = list(map(lambda x: f'x{x}', linha[1:1 + escopo_tam]))
-            print(f"Tamanho do escopo {escopo_tam}")
-            print(f"Indices das variáveis do escopo {escopo}")  # Debug
             index += 1
 
             linha = linhas[index].strip().split()
             num_tuplas = int(linha[0])
-            print(f"Num de tuplas: {num_tuplas}")  # Debug
 
             lista_de_tuplas = []
             linha.pop(0)
@@ -61,8 +54,8 @@ def read_input(file_path):
             for i in range(num_tuplas):
                 lista_de_tuplas.append(tuple(linha[escopo_tam*(i):(escopo_tam*i)+escopo_tam]))
                 
-            print(lista_de_tuplas)
             index += 1
+            
             csp.add_constraint(tipo_restricao, escopo, lista_de_tuplas)
 
         else:
@@ -75,6 +68,7 @@ def is_consistent(csp, assignment, var, value):
     assignment[var] = value
     for constraint_type, scope, tuples in csp.constraints:
         if var in scope:
+            # Collect assigned values for the scope variables
             values = tuple(assignment[v] for v in scope if assignment[v] is not None)
             if len(values) == len(scope):
                 if constraint_type == 'V' and values not in tuples:
@@ -83,19 +77,29 @@ def is_consistent(csp, assignment, var, value):
                 if constraint_type == 'I' and values in tuples:
                     assignment[var] = None
                     return False
+    assignment[var] = None
     return True
 
-def backtrack(csp, assignment):
+def backtrack(csp, assignment):    
+    # Check if all variables are assigned
     if all(v is not None for v in assignment.values()):
         return assignment
 
-    var = next(v for v in assignment if assignment[v] is None)
+    # Select an unassigned variable (using a simple strategy here)
+    var = next((v for v in assignment if assignment[v] is None), None)
+    if var is None:
+        return None
+
+    # Try all values in the domain of the selected variable
     for value in csp.domains[var]:
         if is_consistent(csp, assignment, var, value):
+            assignment[var] = value
             result = backtrack(csp, assignment)
             if result:
                 return result
-        assignment[var] = None
+            print(f"Backtracking from value {value} for {var}")
+            # If assignment does not lead to a solution, reset the variable
+            assignment[var] = None
     return None
 
 def solve_csp(csp):
@@ -111,6 +115,11 @@ def print_solution(solution):
 
 if __name__ == "__main__":
     input_file = sys.argv[1]
-    csp = read_input(input_file)
-    solution = solve_csp(csp)
-    print_solution(solution)
+    output_file = 'saida.txt'
+    with open("saida.txt", 'w') as arq:
+        sys.stdout = arq
+        csp = read_input(input_file)
+        solution = solve_csp(csp)
+        print_solution(solution)
+
+    sys.stdout = sys.__stdout__
