@@ -57,6 +57,7 @@ def read_input(file_path):
             index += 1
             
             csp.add_restricao(tipo_restricao, escopo, lista_de_tuplas)
+            
 
         else:
             print(f"Unexpected linha format: {linhas[index].strip()}") 
@@ -110,8 +111,8 @@ def print_solucao(sol):
 
 if __name__ == "__main__":
     input_file = sys.argv[1]
-    output_file = 'saida.txt'
-    with open("saida.txt", 'w') as arq:
+    output_file = 'output.txt'
+    with open(output_file, 'w') as arq:
         sys.stdout = arq
         csp = read_input(input_file)
         solucao = solve_csp(csp)
