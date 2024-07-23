@@ -45,9 +45,10 @@ def le_entrada(file_path):
 
             linha = linhas[index].strip().split()
             num_tuplas = int(linha[0])
+            linha.pop(0)
 
             lista_de_tuplas = []
-            linha.pop(0)
+            
 
             for i in range(num_tuplas*escopo_tam):
                 linha[i] = int(linha[i])
@@ -81,6 +82,7 @@ def ac3(csp):
             for xk in pega_var_relacionadas(csp, xi):
                 if xk != xj:
                     fila.append((xk, xi))
+    
     return True
 
 def pega_var_relacionadas(csp, var):
@@ -93,7 +95,6 @@ def pega_var_relacionadas(csp, var):
 
 def revisa(dominios, restricoes, var1, var2):
     revisado = False
-    
     # Encontra as restrições que envolvem var1 e var2
     restricoes_relacionadas = []
     tuplas_relacionadas = []
@@ -107,9 +108,16 @@ def revisa(dominios, restricoes, var1, var2):
     if not restricoes_relacionadas:
         return revisado
     
+    
+    """ Debug
+    print(restricoes_relacionadas)
+    print(escopos_relacionados)
+    print(tuplas_relacionadas) 
+    """
+    
     x_i = (escopos_relacionados[0].index(var1))
     y_i = (escopos_relacionados[0].index(var2))
-
+    
     remover_domV1 = []
     remover_domV2 = []
     nao_remover_domV1 = []
@@ -167,7 +175,6 @@ def seleciona_var_mrv(csp, atribuicao):
             if tam_dominio < menor_dominio:
                 menor_dominio = tam_dominio
                 mrv_var = var
-    
     return mrv_var
 
 def backtrack(csp, atribuicao):
@@ -188,7 +195,7 @@ def backtrack(csp, atribuicao):
             if resultado:
                 return resultado
             atribuicao[var] = None
-
+    
     return None
 
 def solve_csp(csp):
