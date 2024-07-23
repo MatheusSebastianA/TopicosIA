@@ -58,9 +58,10 @@ def write_csp_format(num_vars, clauses):
                 else:
                     print(f"{constraint[i] - (2*constraint[i])}", end=' ')
                     negativos += 1
-            print('')
+            print()
             print(f'{2**len(constraint) - 1}', end=' ')
-            print(backtrack(len(constraint), constraint, [], 0))
+            backtrack(len(constraint), constraint, [], 0)
+            print()
             
 
 def backtrack(len_constraint, constraint, current_assignment=[], index=0):
