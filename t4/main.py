@@ -7,14 +7,14 @@ class CSP:
         self.dominios = {}
         self.restricoes = []
 
-    def add_variavel(self, var, domain):
+    def add_variavel(self, var, dominio):
         self.variaveis[var] = None
-        self.dominios[var] = set(domain)
+        self.dominios[var] = set(dominio)
 
     def add_restricao(self, tipo_restricao, escopo, tuplas):
         self.restricoes.append((tipo_restricao, escopo, tuplas))
 
-def read_input(file_path):
+def le_entrada(file_path):
     csp = CSP()
     with open(file_path, 'r') as f:
         linhas = f.readlines()
@@ -91,14 +91,14 @@ def pega_var_relacionadas(csp, var):
     return var_relacionadas
 
 
-def revisa(domains, constraints, var1, var2):
+def revisa(dominios, restricoes, var1, var2):
     revisado = False
     
     # Encontra as restrições que envolvem var1 e var2
     restricoes_relacionadas = []
     tuplas_relacionadas = []
     escopos_relacionados = []
-    for tipo_restricao, escopo, tuplas in constraints:
+    for tipo_restricao, escopo, tuplas in restricoes:
         if var1 in escopo and var2 in escopo:
             restricoes_relacionadas.append((tipo_restricao, escopo, tuplas))
             tuplas_relacionadas.append(tuplas)
@@ -110,59 +110,59 @@ def revisa(domains, constraints, var1, var2):
     x_i = (escopos_relacionados[0].index(var1))
     y_i = (escopos_relacionados[0].index(var2))
 
-    to_removev1 = []
-    to_not_removev1 = []
-    to_removev2 = []
-    to_not_removev2 = []
+    remover_domV1 = []
+    remover_domV2 = []
+    nao_remover_domV1 = []
+    nao_remover_domV2 = []
     
 
-    for x in domains[var1]:
-        for y in domains[var2]:
+    for x in dominios[var1]:
+        for y in dominios[var2]:
             for tupla in tuplas_relacionadas:
                 for i in tupla:
                     if x == i[x_i] and y == i[y_i]:
-                        if x not in to_not_removev1:
-                            to_not_removev1.append(x)
-                        if y not in to_not_removev2:  
-                            to_not_removev2.append(y)
+                        if x not in nao_remover_domV1:
+                            nao_remover_domV1.append(x)
+                        if y not in nao_remover_domV2:  
+                            nao_remover_domV2.append(y)
                     else:
-                        if x not in to_removev1:
-                            to_removev1.append(x)
-                        if y not in to_removev2: 
-                            to_removev2.append(y)
+                        if x not in remover_domV1:
+                            remover_domV1.append(x)
+                        if y not in remover_domV2: 
+                            remover_domV2.append(y)
 
-    for i in range (len(to_not_removev1)):
-        to_removev1.remove(to_not_removev1[i])
-    for i in range (len(to_not_removev2)): 
-        to_removev2.remove(to_not_removev2[i])
+    for i in range (len(nao_remover_domV1)):
+        remover_domV1.remove(nao_remover_domV1[i])
+    for i in range (len(nao_remover_domV2)): 
+        remover_domV2.remove(nao_remover_domV2[i])
     
-    if to_removev1:
-        domains[var1].difference_update(to_removev1)
-        domains[var2].difference_update(to_removev2)
+    if remover_domV1:
+        dominios[var1].difference_update(remover_domV1)
+        dominios[var2].difference_update(remover_domV2)
         revisado = True
 
     return revisado
 
-def is_consistent(csp, assignment, var, value):
-    assignment[var] = value
+def eh_consistente(csp, atribuicao, var, valor):
+    atribuicao[var] = valor
     for tipo_restricao, escopo, tuplas in csp.restricoes:
         if var in escopo:
-            values = tuple(assignment[v] for v in escopo if assignment[v] is not None)
-            if len(values) == len(escopo):
-                if tipo_restricao == 'V' and values not in tuplas:
-                    assignment[var] = None
+            valors = tuple(atribuicao[v] for v in escopo if atribuicao[v] is not None)
+            if len(valors) == len(escopo):
+                if tipo_restricao == 'V' and valors not in tuplas:
+                    atribuicao[var] = None
                     return False
-                if tipo_restricao == 'I' and values in tuplas:
-                    assignment[var] = None
+                if tipo_restricao == 'I' and valors in tuplas:
+                    atribuicao[var] = None
                     return False
-    assignment[var] = None
+    atribuicao[var] = None
     return True
 
-def select_mrv_variable(csp, assignment):
+def seleciona_var_mrv(csp, atribuicao):
     menor_dominio = float('inf')
     mrv_var = None
     for var in csp.variaveis:
-        if assignment[var] is None:
+        if atribuicao[var] is None:
             tam_dominio = len(csp.dominios[var])
             if tam_dominio < menor_dominio:
                 menor_dominio = tam_dominio
@@ -170,30 +170,30 @@ def select_mrv_variable(csp, assignment):
     
     return mrv_var
 
-def backtrack(csp, assignment):
-    if all(v is not None for v in assignment.values()):
-        return assignment
+def backtrack(csp, atribuicao):
+    if all(v is not None for v in atribuicao.values()):
+        return atribuicao
     
     if not ac3(csp):
         return None
     
-    var = select_mrv_variable(csp, assignment)
+    var = seleciona_var_mrv(csp, atribuicao)
     if var is None:
         return None
 
-    for value in list(csp.dominios[var]):
-        if is_consistent(csp, assignment, var, value):
-            assignment[var] = value
-            result = backtrack(csp, assignment)
-            if result:
-                return result
-            assignment[var] = None
+    for valor in list(csp.dominios[var]):
+        if eh_consistente(csp, atribuicao, var, valor):
+            atribuicao[var] = valor
+            resultado = backtrack(csp, atribuicao)
+            if resultado:
+                return resultado
+            atribuicao[var] = None
 
     return None
 
 def solve_csp(csp):
-    assignment = {var: None for var in csp.variaveis}
-    return backtrack(csp, assignment)
+    atribuicao = {var: None for var in csp.variaveis}
+    return backtrack(csp, atribuicao)
 
 def print_solucao(sol):
     if sol:
@@ -207,7 +207,7 @@ if __name__ == "__main__":
     output_file = 'output.txt'
     with open(output_file, 'w') as arq:
         sys.stdout = arq
-        csp = read_input(input_file)
+        csp = le_entrada(input_file)
         solucao = solve_csp(csp)
         print_solucao(solucao)
 
