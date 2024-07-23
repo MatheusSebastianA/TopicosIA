@@ -92,16 +92,16 @@ def get_related_vars(csp, var):
 
 """ def revise(csp, xi, xj):
     revised = False
-    to_remove = set()
+    to_removev1 = set()
     
     print(f"Revisando arcos ({xi}, {xj})")
     for x in csp.dominios[xi]:
         if not any((x, y) in tuples for y in csp.dominios[xj] for tipo, escopo, tuples in csp.restricoes if (xi in escopo and xj in escopo)):
-            to_remove.add(x)
+            to_removev1.add(x)
     
-    if to_remove:
-        print(f"Removendo valores de {xi}: {to_remove}")
-        csp.dominios[xi].difference_update(to_remove)
+    if to_removev1:
+        print(f"Removendo valores de {xi}: {to_removev1}")
+        csp.dominios[xi].difference_update(to_removev1)
         revised = True
     
     return revised
@@ -109,19 +109,54 @@ def get_related_vars(csp, var):
 
 def revise(domains, constraints, var1, var2):
     revised = False
-    if (var1, var2) in constraints or (var2, var1) in constraints:
-        # Obtém os domínios das variáveis
-        domain1 = set(domains[var1])
-        domain2 = set(domains[var2])
-        
-        # Calcula a interseção dos domínios
-        intersection = domain1.intersection(domain2)
-        
-        # Verifica se o domínio da var1 precisa ser ajustado
-        if intersection != domain1:
-            domains[var1] = list(intersection)
-            revised = True
-            
+    
+    # Encontra as restrições que envolvem var1 e var2
+    related_constraints = []
+    related_tuples = []
+    related_scope = []
+    for tipo_restricao, escopo, tuplas in constraints:
+        if var1 in escopo and var2 in escopo:
+            related_constraints.append((tipo_restricao, escopo, tuplas))
+            related_tuples.append(tuplas)
+            related_scope.append(escopo)
+    
+    if not related_constraints:
+        return revised
+    
+    x_i = (related_scope[0].index(var1))
+    y_i = (related_scope[0].index(var2))
+    
+    to_removev1 = []
+    to_not_removev1 = []
+    to_removev2 = []
+    to_not_removev2 = []
+    
+
+    for x in domains[var1]:
+        for y in domains[var2]:
+            for tupla in related_tuples:
+                for i in tupla:
+                    if x == i[x_i] and y == i[y_i]:
+                        if x not in to_not_removev1:
+                            to_not_removev1.append(x)
+                        if y not in to_not_removev2:  
+                            to_not_removev2.append(y)
+                    else:
+                        if x not in to_removev1:
+                            to_removev1.append(x)
+                        if y not in to_removev2: 
+                            to_removev2.append(y)
+
+    for i in range (len(to_not_removev1)):
+        to_removev1.remove(to_not_removev1[i])
+    for i in range (len(to_not_removev2)): 
+        to_removev2.remove(to_not_removev2[i])
+    
+    if to_removev1:
+        domains[var1].difference_update(to_removev1)
+        domains[var2].difference_update(to_removev2)
+        revised = True
+
     return revised
 
 def is_consistent(csp, assignment, var, value):
@@ -165,8 +200,7 @@ def backtrack(csp, assignment):
     for value in list(csp.dominios[var]):
         if is_consistent(csp, assignment, var, value):
             assignment[var] = value
-            if var == 'x14':
-                print(assignment)
+            """ print(assignment) """
             result = backtrack(csp, assignment)
             if result:
                 return result
