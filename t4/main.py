@@ -66,66 +66,50 @@ def read_input(file_path):
     return csp
 
 def ac3(csp):
-    queue = deque()
-    # Populate queue with all arcs
+    fila = deque()
+    # Fila com todas os arcos a serem verificados
     for tipo_restricao, escopo, _ in csp.restricoes:
         for i in range(len(escopo)):
             for j in range(i + 1, len(escopo)):
-                queue.append((escopo[i], escopo[j]))
+                fila.append((escopo[i], escopo[j]))
     
-    while queue:
-        xi, xj = queue.popleft()
+    while fila:
+        xi, xj = fila.popleft()
         if revise(csp.dominios, csp.restricoes, xi, xj):
             if not csp.dominios[xi]:
                 return False
-            for xk in get_related_vars(csp, xi):
+            for xk in pega_var_relacionadas(csp, xi):
                 if xk != xj:
-                    queue.append((xk, xi))
+                    fila.append((xk, xi))
     return True
 
-def get_related_vars(csp, var):
-    related_vars = set()
+def pega_var_relacionadas(csp, var):
+    var_relacionadas = set()
     for tipo_restricao, escopo, _ in csp.restricoes:
         if var in escopo:
-            related_vars.update(v for v in escopo if v != var)
-    return related_vars
+            var_relacionadas.update(v for v in escopo if v != var)
+    return var_relacionadas
 
-""" def revise(csp, xi, xj):
-    revised = False
-    to_removev1 = set()
-    
-    print(f"Revisando arcos ({xi}, {xj})")
-    for x in csp.dominios[xi]:
-        if not any((x, y) in tuples for y in csp.dominios[xj] for tipo, escopo, tuples in csp.restricoes if (xi in escopo and xj in escopo)):
-            to_removev1.add(x)
-    
-    if to_removev1:
-        print(f"Removendo valores de {xi}: {to_removev1}")
-        csp.dominios[xi].difference_update(to_removev1)
-        revised = True
-    
-    return revised
- """
 
 def revise(domains, constraints, var1, var2):
     revised = False
     
     # Encontra as restrições que envolvem var1 e var2
-    related_constraints = []
-    related_tuples = []
-    related_scope = []
+    restricoes_relacionadas = []
+    tuplas_relacionadas = []
+    escopos_relacionados = []
     for tipo_restricao, escopo, tuplas in constraints:
         if var1 in escopo and var2 in escopo:
-            related_constraints.append((tipo_restricao, escopo, tuplas))
-            related_tuples.append(tuplas)
-            related_scope.append(escopo)
+            restricoes_relacionadas.append((tipo_restricao, escopo, tuplas))
+            tuplas_relacionadas.append(tuplas)
+            escopos_relacionados.append(escopo)
     
-    if not related_constraints:
+    if not restricoes_relacionadas:
         return revised
     
-    x_i = (related_scope[0].index(var1))
-    y_i = (related_scope[0].index(var2))
-    
+    x_i = (escopos_relacionados[0].index(var1))
+    y_i = (escopos_relacionados[0].index(var2))
+
     to_removev1 = []
     to_not_removev1 = []
     to_removev2 = []
@@ -134,7 +118,7 @@ def revise(domains, constraints, var1, var2):
 
     for x in domains[var1]:
         for y in domains[var2]:
-            for tupla in related_tuples:
+            for tupla in tuplas_relacionadas:
                 for i in tupla:
                     if x == i[x_i] and y == i[y_i]:
                         if x not in to_not_removev1:
@@ -175,13 +159,13 @@ def is_consistent(csp, assignment, var, value):
     return True
 
 def select_mrv_variable(csp, assignment):
-    min_domain_size = float('inf')
+    menor_dominio = float('inf')
     mrv_var = None
     for var in csp.variaveis:
         if assignment[var] is None:
-            domain_size = len(csp.dominios[var])
-            if domain_size < min_domain_size:
-                min_domain_size = domain_size
+            tam_dominio = len(csp.dominios[var])
+            if tam_dominio < menor_dominio:
+                menor_dominio = tam_dominio
                 mrv_var = var
     
     return mrv_var
@@ -200,12 +184,11 @@ def backtrack(csp, assignment):
     for value in list(csp.dominios[var]):
         if is_consistent(csp, assignment, var, value):
             assignment[var] = value
-            """ print(assignment) """
             result = backtrack(csp, assignment)
             if result:
                 return result
             assignment[var] = None
-    
+
     return None
 
 def solve_csp(csp):
