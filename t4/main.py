@@ -75,7 +75,7 @@ def ac3(csp):
     
     while fila:
         xi, xj = fila.popleft()
-        if revise(csp.dominios, csp.restricoes, xi, xj):
+        if revisa(csp.dominios, csp.restricoes, xi, xj):
             if not csp.dominios[xi]:
                 return False
             for xk in pega_var_relacionadas(csp, xi):
@@ -91,8 +91,8 @@ def pega_var_relacionadas(csp, var):
     return var_relacionadas
 
 
-def revise(domains, constraints, var1, var2):
-    revised = False
+def revisa(domains, constraints, var1, var2):
+    revisado = False
     
     # Encontra as restrições que envolvem var1 e var2
     restricoes_relacionadas = []
@@ -105,7 +105,7 @@ def revise(domains, constraints, var1, var2):
             escopos_relacionados.append(escopo)
     
     if not restricoes_relacionadas:
-        return revised
+        return revisado
     
     x_i = (escopos_relacionados[0].index(var1))
     y_i = (escopos_relacionados[0].index(var2))
@@ -139,9 +139,9 @@ def revise(domains, constraints, var1, var2):
     if to_removev1:
         domains[var1].difference_update(to_removev1)
         domains[var2].difference_update(to_removev2)
-        revised = True
+        revisado = True
 
-    return revised
+    return revisado
 
 def is_consistent(csp, assignment, var, value):
     assignment[var] = value
