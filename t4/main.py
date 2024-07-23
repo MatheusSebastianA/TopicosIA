@@ -1,4 +1,5 @@
 import sys
+from collections import deque
 
 class CSP:
     def __init__(self):
@@ -8,7 +9,7 @@ class CSP:
 
     def add_variavel(self, var, domain):
         self.variaveis[var] = None
-        self.dominios[var] = domain
+        self.dominios[var] = set(domain)
 
     def add_restricao(self, tipo_restricao, escopo, tuplas):
         self.restricoes.append((tipo_restricao, escopo, tuplas))
@@ -64,6 +65,65 @@ def read_input(file_path):
 
     return csp
 
+def ac3(csp):
+    queue = deque()
+    # Populate queue with all arcs
+    for tipo_restricao, escopo, _ in csp.restricoes:
+        for i in range(len(escopo)):
+            for j in range(i + 1, len(escopo)):
+                queue.append((escopo[i], escopo[j]))
+    
+    while queue:
+        xi, xj = queue.popleft()
+        if revise(csp.dominios, csp.restricoes, xi, xj):
+            if not csp.dominios[xi]:
+                return False
+            for xk in get_related_vars(csp, xi):
+                if xk != xj:
+                    queue.append((xk, xi))
+    return True
+
+def get_related_vars(csp, var):
+    related_vars = set()
+    for tipo_restricao, escopo, _ in csp.restricoes:
+        if var in escopo:
+            related_vars.update(v for v in escopo if v != var)
+    return related_vars
+
+""" def revise(csp, xi, xj):
+    revised = False
+    to_remove = set()
+    
+    print(f"Revisando arcos ({xi}, {xj})")
+    for x in csp.dominios[xi]:
+        if not any((x, y) in tuples for y in csp.dominios[xj] for tipo, escopo, tuples in csp.restricoes if (xi in escopo and xj in escopo)):
+            to_remove.add(x)
+    
+    if to_remove:
+        print(f"Removendo valores de {xi}: {to_remove}")
+        csp.dominios[xi].difference_update(to_remove)
+        revised = True
+    
+    return revised
+ """
+
+def revise(domains, constraints, var1, var2):
+    revised = False
+    if (var1, var2) in constraints or (var2, var1) in constraints:
+        # Obtém os domínios das variáveis
+        domain1 = set(domains[var1])
+        domain2 = set(domains[var2])
+        
+        # Calcula a interseção dos domínios
+        intersection = domain1.intersection(domain2)
+        
+        # Verifica se o domínio da var1 precisa ser ajustado
+        if intersection != domain1:
+            domains[var1] = list(intersection)
+            revised = True
+            
+    return revised
+
 def is_consistent(csp, assignment, var, value):
     assignment[var] = value
     for tipo_restricao, escopo, tuplas in csp.restricoes:
@@ -79,22 +139,39 @@ def is_consistent(csp, assignment, var, value):
     assignment[var] = None
     return True
 
-def backtrack(csp, assignment):    
+def select_mrv_variable(csp, assignment):
+    min_domain_size = float('inf')
+    mrv_var = None
+    for var in csp.variaveis:
+        if assignment[var] is None:
+            domain_size = len(csp.dominios[var])
+            if domain_size < min_domain_size:
+                min_domain_size = domain_size
+                mrv_var = var
+    
+    return mrv_var
+
+def backtrack(csp, assignment):
     if all(v is not None for v in assignment.values()):
         return assignment
-
-    var = next((v for v in assignment if assignment[v] is None), None)
+    
+    if not ac3(csp):
+        return None
+    
+    var = select_mrv_variable(csp, assignment)
     if var is None:
         return None
 
-    for value in csp.dominios[var]:
+    for value in list(csp.dominios[var]):
         if is_consistent(csp, assignment, var, value):
             assignment[var] = value
+            if var == 'x14':
+                print(assignment)
             result = backtrack(csp, assignment)
             if result:
                 return result
-            print(f"Backtracking from value {value} for {var}")
             assignment[var] = None
+    
     return None
 
 def solve_csp(csp):
@@ -110,8 +187,8 @@ def print_solucao(sol):
 
 if __name__ == "__main__":
     input_file = sys.argv[1]
-    output_file = 'saida.txt'
-    with open("saida.txt", 'w') as arq:
+    output_file = 'output.txt'
+    with open(output_file, 'w') as arq:
         sys.stdout = arq
         csp = read_input(input_file)
         solucao = solve_csp(csp)
