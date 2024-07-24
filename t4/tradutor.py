@@ -5,7 +5,7 @@ def read_dimacs(filename):
     Lê o arquivo DIMACS e retorna o número de variáveis e uma lista de cláusulas.
     """
     num_vars = 0
-    clauses = []
+    clausulas = []
 
     with open(filename, 'r') as f:
         for line in f:
@@ -15,26 +15,24 @@ def read_dimacs(filename):
                 num_vars = int(num_vars)
             elif line and not line.startswith('c'):
                 # Remove o zero final e separa os literais da cláusula
-                clause = list(map(int, line.split()[:-1]))
-                if clause:  # Adiciona a cláusula se não estiver vazia
-                    clauses.append(clause)
+                clausula = list(map(int, line.split()[:-1]))
+                if clausula:  # Adiciona a cláusula se não estiver vazia
+                    clausulas.append(clausula)
 
-    return num_vars, clauses
+    return num_vars, clausulas
 
-def convert_clause_to_constraints(clause):
+def converte_clausula(clausula):
     """
     Converte uma cláusula DIMACS em uma lista de restrições no formato do CSP solver.
     Cada cláusula é uma restrição no formato binário.
     """
-    constraints = []
+    restricoes = []
     # Cada cláusula é uma restrição sozinha no formato desejado
-    constraints.append(clause)
-    return constraints
+    restricoes.append(clausula)
+    return restricoes
 
-def write_csp_format(num_vars, clauses):
+def write_csp_format(num_vars, clausulas):
     tam_dominio = 2
-    positivos = 0
-    negativos = 0
     """
     Escreve o arquivo de saída no formato de restrições do CSP.
     """
@@ -44,59 +42,58 @@ def write_csp_format(num_vars, clauses):
         print(f'{tam_dominio} {-1} {1}')
 
     # Escreve as restrições
-    num_constraints = len(clauses)
-    print(f"{num_constraints}")
-    for clause in clauses:
-        constraints = convert_clause_to_constraints(clause)
-        for constraint in constraints:
+    num_restricoes = len(clausulas)
+    print(f"{num_restricoes}")
+    for clausula in clausulas:
+        restricoes = converte_clausula(clausula)
+        for restricao in restricoes:
             print(f"V")
-            print(f"{len(constraint)}", end=' ')
-            for i in range (len(constraint)):
-                if ('-' not in str(constraint[i])):
-                    print(f"{constraint[i]}", end=' ')
-                    positivos += 1
+            print(f"{len(restricao)}", end=' ')
+            for i in range (len(restricao)):
+                if ('-' not in str(restricao[i])):
+                    print(f"{restricao[i]}", end=' ')
                 else:
-                    print(f"{constraint[i] - (2*constraint[i])}", end=' ')
-                    negativos += 1
+                    print(f"{restricao[i] - (2*restricao[i])}", end=' ')
+
             print()
-            print(f'{2**len(constraint) - 1}', end=' ')
-            backtrack(len(constraint), constraint, [], 0)
+            print(f'{2**len(restricao) - 1}', end=' ')
+            backtrack(len(restricao), restricao, [], 0)
             print()
             
 
-def backtrack(len_constraint, constraint, current_assignment=[], index=0):
+def backtrack(len_restricao, restricao, valor_atual=[], ind=0):
     csp_sum = 0
-    if index == len_constraint:
-        csp_assignment = [x if x == 1 else -1 for x in current_assignment]
-        csp_sum = sum(csp_assignment[i] * (1 if constraint[i] > 0 else -1) for i in range(len_constraint))
-        if csp_sum != -(len_constraint):
+    if ind == len_restricao:
+        csp_assignment = [x if x == 1 else -1 for x in valor_atual]
+        csp_sum = sum(csp_assignment[i] * (1 if restricao[i] > 0 else -1) for i in range(len_restricao))
+        if csp_sum != -(len_restricao):
             print(' '.join(map(str, csp_assignment)), end=' ')
         
         return
     
     # Atribui -1 e chama a função recursivamente
-    current_assignment.append(-1)
-    backtrack(len_constraint, constraint, current_assignment, index + 1)
-    current_assignment.pop()
+    valor_atual.append(-1)
+    backtrack(len_restricao, restricao, valor_atual, ind + 1)
+    valor_atual.pop()
     
     # Atribui 1 e chama a função recursivamente
-    current_assignment.append(1)
-    backtrack(len_constraint, constraint, current_assignment, index + 1)
-    current_assignment.pop()
+    valor_atual.append(1)
+    backtrack(len_restricao, restricao, valor_atual, ind + 1)
+    valor_atual.pop()
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: python tradutor.py <input_file.dimacs> <output_file.csp>")
+        print("Entrada errada, utilize: python3 tradutor.py <input_file.txt> <output_file.txt>")
         sys.exit(1)
 
     input_file = sys.argv[1]
     output_file = sys.argv[2]
 
-    num_vars, clauses = read_dimacs(input_file)
+    num_vars, clausulas = read_dimacs(input_file)
     
     with open(output_file, 'w') as arq:
         sys.stdout = arq
-        write_csp_format(num_vars, clauses)
+        write_csp_format(num_vars, clausulas)
 
     sys.stdout = sys.__stdout__
