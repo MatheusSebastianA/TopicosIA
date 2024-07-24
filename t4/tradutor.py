@@ -83,17 +83,12 @@ def backtrack(len_restricao, restricao, valor_atual=[], ind=0):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Entrada errada, utilize: python3 tradutor.py <input_file.txt> <output_file.txt>")
+    if len(sys.argv) != 2:
+        print("Entrada errada, utilize: python3 tradutor.py <input_file.txt> ")
         sys.exit(1)
 
     input_file = sys.argv[1]
-    output_file = sys.argv[2]
-
     num_vars, clausulas = read_dimacs(input_file)
-    
-    with open(output_file, 'w') as arq:
-        sys.stdout = arq
-        write_csp_format(num_vars, clausulas)
+    write_csp_format(num_vars, clausulas)
 
     sys.stdout = sys.__stdout__
