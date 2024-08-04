@@ -84,7 +84,7 @@ def backtrack(len_restricao, restricao, valor_atual=[], ind=0):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Entrada errada, utilize: python3 tradutor.py <input_file.txt> ")
+        print("Entrada errada, utilize: python3 tradutor.py > <input_file.txt> ")
         sys.exit(1)
 
     input_file = sys.argv[1]
