@@ -31,4 +31,4 @@ O tradutor apresenta as variáveis sem o -, para que não haja problema de leitu
 
 Experimentos:
 Para o problema das N-rainhas, a partir de N igual a 32 o programa demora cerca de 1 minuto para resolver, aumentando para os demais casos e ficando inviável para 16(demorou mais de 10 minutos).
-Para o problema SAT, a partir de 100 variáveis o programa demora mais de 3 minutos para ser concluído, para 75 variáveis alguns demoram em torno de 20 segundos a 1 minuto.
+Para o problema SAT, a partir de 100 variáveis o programa demora mais de 3 minutos para ser concluído, para 75 variáveis alguns demoram em torno de 20 segundos a 2 minutos.
