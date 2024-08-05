@@ -72,16 +72,17 @@ def gac3(csp):
     arcos_processados = set()
     
     # Empilha todos os arcos sem repetições
-    for tipo_restricao, escopo, _ in csp.restricoes:
-        for i in range(len(escopo)):
-            for j in range(i+1, len(escopo)):
-                if i != j:
-                    arco = (escopo[i], escopo[j])
+    if not pilha: 
+        for tipo_restricao, escopo, _ in csp.restricoes:
+            for i in range(len(escopo)):
+                for j in range(i+1, len(escopo)):
+                    if i != j:
+                        arco = (escopo[i], escopo[j])
+                        
+                        if arco not in arcos_processados:
+                            pilha.append(arco)
+                            arcos_processados.add(arco)
                     
-                    if arco not in arcos_processados:
-                        pilha.append(arco)
-                        arcos_processados.add(arco)
-                 
     while pilha:
         xi, xj = pilha.popleft()
         if revisa_gac(csp, xi):
@@ -107,6 +108,7 @@ def revisa_gac(csp, xi):
 
             # Para cada valor em xi, verificar se há suporte nas outras variáveis do escopo
             for valor_xi in csp.dominios[xi]:
+                # print(f"VALOR: {valor_xi}")
                 suporte_encontrado = False
                 for tupla in tuplas:
                     if valor_xi == tupla[xi_idx]:
@@ -122,6 +124,7 @@ def revisa_gac(csp, xi):
                     valores_a_remover.add(valor_xi)
 
     if valores_a_remover:
+        # print(f"Removendo {valores_a_remover} da var {xi}")
         csp.dominios[xi].difference_update(valores_a_remover)
         revisado = True
 
@@ -168,11 +171,12 @@ def backtrack(csp, atribuicao):
 
     # Escolher a variável com o menor domínio restante
     var = seleciona_var_mrv(csp, atribuicao)
+    # print(f"Selecionando var {var}")
     if var is None:
         return None
 
     dominio_original = csp.dominios[var].copy()
-
+    #print(csp.dominios)
     for valor in list(csp.dominios[var]):
         if eh_consistente(csp, atribuicao, var, valor):
             atribuicao[var] = valor
