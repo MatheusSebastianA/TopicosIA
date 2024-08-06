@@ -62,7 +62,7 @@ def le_entrada(file_path):
             csp.add_restricao(tipo_restricao, escopo, lista_de_tuplas)
 
         else:
-            print(f"Unexpected linha format: {linhas[index].strip()}") 
+            print(f"Formato de linha não esperado: {linhas[index].strip()}") 
             break
 
     return csp
@@ -108,7 +108,6 @@ def revisa_gac(csp, xi):
 
             # Para cada valor em xi, verificar se há suporte nas outras variáveis do escopo
             for valor_xi in csp.dominios[xi]:
-                # print(f"VALOR: {valor_xi}")
                 suporte_encontrado = False
                 for tupla in tuplas:
                     if valor_xi == tupla[xi_idx]:
@@ -124,7 +123,6 @@ def revisa_gac(csp, xi):
                     valores_a_remover.add(valor_xi)
 
     if valores_a_remover:
-        # print(f"Removendo {valores_a_remover} da var {xi}")
         csp.dominios[xi].difference_update(valores_a_remover)
         revisado = True
 
@@ -171,12 +169,10 @@ def backtrack(csp, atribuicao):
 
     # Escolher a variável com o menor domínio restante
     var = seleciona_var_mrv(csp, atribuicao)
-    # print(f"Selecionando var {var}")
     if var is None:
         return None
 
     dominio_original = csp.dominios[var].copy()
-    #print(csp.dominios)
     for valor in list(csp.dominios[var]):
         if eh_consistente(csp, atribuicao, var, valor):
             atribuicao[var] = valor
